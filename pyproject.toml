@@ -26,6 +26,12 @@ classifiers = [
 ]
 
 dependencies = [
+    "attrs>=25.4.0",
+    "colormap-complex>=0.2.0",
+    "matplotlib-multicolored-line>=0.3.0",
+    "networkx>=3.4.2",
+    "seaborn>=0.13.2",
+    "ss-hankel>=1.0.0",
 ]
 urls."Bug Tracker" = "https://github.com/ultrasphere-dev/epsearch/issues"
 urls.Changelog = "https://github.com/ultrasphere-dev/epsearch/blob/main/CHANGELOG.md"
@@ -35,8 +41,11 @@ urls.repository = "https://github.com/ultrasphere-dev/epsearch"
 [dependency-groups]
 dev = [
   "coverage",
+  "joblib>=1.5.2",
   "pytest>=8,<9",
   "pytest-cov>=6,<7",
+  "tqdm>=4.67.1",
+  "tqdm-joblib>=0.0.5",
 ]
 docs = [
   "furo>=2023.5.20; python_version>='3.11'",
@@ -46,7 +55,7 @@ docs = [
 ]
 
 [tool.ruff]
-line-length = 88
+line-length = 100
 lint.select = [
   "B",   # flake8-bugbear
   "D",   # flake8-docstrings
