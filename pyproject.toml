@@ -42,7 +42,7 @@ urls.repository = "https://github.com/ultrasphere-dev/epsearch"
 dev = [
   "coverage",
   "joblib>=1.5.2",
-  "pytest>=8,<9",
+  "pytest>=9,<10",
   "pytest-cov>=6,<7",
   "tqdm>=4.67.1",
   "tqdm-joblib>=0.0.5",
