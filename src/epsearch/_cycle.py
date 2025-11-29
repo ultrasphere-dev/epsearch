@@ -132,6 +132,9 @@ def argmatch_from_closest_masked(
 def get_cycles(
     eigvals: Sequence[Sequence[TNumber]] | np.ndarray[tuple[int, int], np.dtype[TNumber]],
     /,
+    *,
+    decompose_threshold_diff_factor: float = 2,
+    decompose_threshold_rate: float = 0.5,
 ) -> Cycles[TNumber]:
     """
     Get cycles from the eigenvalues for each point.
@@ -140,6 +143,16 @@ def get_cycles(
     ----------
     eigvals : Sequence[Sequence[TNumber]] | np.ndarray[tuple[int, int], np.dtype[TNumber]]
         A (ordered) sequence which contains the eigenvalues for each point.
+    decompose_threshold_diff_factor : float, optional
+        If the rate of elements which are closer than
+        max(mean difference) * decompose_threshold_diff_factor
+        is higher than decompose_threshold_rate,
+        the cycle is decomposed, by default 0.5.
+    decompose_threshold_rate : float, optional
+        If the rate of elements which are closer than
+        max(mean difference) * decompose_threshold_diff_factor
+        is higher than decompose_threshold_rate,
+        the cycle is decomposed, by default 0.5.
 
     Returns
     -------
@@ -185,7 +198,13 @@ def get_cycles(
     # decompose cycles which are too close
     for cycle in cycles:
         mean_diff = np.max(np.mean(np.abs(np.diff(eigvals_c[:, cycle], axis=0)), axis=0))
-        if np.all(np.abs(eigvals_c[:, cycle[0]] - eigvals_c) < mean_diff):
+        if (
+            np.mean(
+                np.abs(eigvals_c[:, cycle[0]] - eigvals_c)
+                < mean_diff * decompose_threshold_diff_factor
+            )
+            > decompose_threshold_rate
+        ):
             G.remove_edges_from(
                 [(cycle[i], cycle[(i + 1) % len(cycle)]) for i in range(len(cycle))]
             )
