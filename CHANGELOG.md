@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.1 (2025-11-29)
+
+### Bug fixes
+
+- Decompose cycles which are too close ([`015a7d8`](https://github.com/ultrasphere-dev/epsearch/commit/015a7d85a71b13836dd2a4ff47d9699bc2c35eb6))
+
 ## v1.0.0 (2025-11-08)
 
 ### Features
