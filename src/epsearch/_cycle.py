@@ -200,7 +200,7 @@ def get_cycles(
         mean_diff = np.max(np.mean(np.abs(np.diff(eigvals_c[:, cycle], axis=0)), axis=0))
         if (
             np.mean(
-                np.abs(eigvals_c[:, cycle[0]] - eigvals_c)
+                np.abs(eigvals_c[:, cycle[0]][:, None] - eigvals_c)
                 < mean_diff * decompose_threshold_diff_factor
             )
             > decompose_threshold_rate
