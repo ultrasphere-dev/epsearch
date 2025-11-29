@@ -181,6 +181,17 @@ def get_cycles(
     arg = argmatch_from_closest(eigvals_c[-1, :], eigvals_c[0, :])
     G = nx.DiGraph(list(enumerate(arg[~arg.mask])))
     cycles = list(nx.simple_cycles(G))
+
+    # decompose cycles which are too close
+    for cycle in cycles:
+        mean_diff = np.max(np.mean(np.abs(np.diff(eigvals_c[:, cycle], axis=0)), axis=0))
+        if np.all(np.abs(eigvals_c[:, cycle[0]] - eigvals_c) < mean_diff):
+            G.remove_edges_from(
+                [(cycle[i], cycle[(i + 1) % len(cycle)]) for i in range(len(cycle))]
+            )
+            G.add_edges_from([(cycle[i], cycle[i]) for i in range(len(cycle))])
+    cycles = list(nx.simple_cycles(G))
+
     # order by length
     cycles = sorted(cycles, key=len, reverse=True)
     return Cycles(
