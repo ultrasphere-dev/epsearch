@@ -494,3 +494,82 @@ class CirclesBoundary(BoundaryGenerator[Circle, complex]):
             if (np.abs(centers[i] - centers[:i]) > radii[i] + radii[:i]).all():
                 result.append(centers[i])
         return result
+
+
+@attrs.frozen(kw_only=True)
+class Rect:
+    half_size: complex
+    center: complex
+
+
+@attrs.frozen(kw_only=True)
+class RectsBoundary(BoundaryGenerator[Rect, complex]):
+    """
+    Divide-and-conquer search using rectangles.
+
+    Parameters
+    ----------
+    center : complex
+        The center of the rectangle.
+    half_size : complex
+        The half size of the rectangle (width/2 + 1j * height/2).
+    half_size_min : complex
+        The half size threshold to stop the recursion.
+    n_points_per_side : int
+        The number of points per side on the rectangle.
+
+    """
+
+    center: complex
+    half_size: complex
+    half_size_min: complex
+    n_points_per_side: int
+
+    def _rect(self, *, center: complex, half_size: complex) -> tuple[Rect, Sequence[complex]]:
+        arranged = 2 * np.arange(self.n_points_per_side) / self.n_points_per_side - 1
+        points = center + np.concat(
+            [
+                half_size.real * arranged + 1j * half_size.imag,
+                half_size.real * -arranged - 1j * half_size.imag,
+                half_size.real + 1j * half_size.imag * arranged,
+                -half_size.real - 1j * half_size.imag * arranged,
+            ],
+            axis=0,
+        )
+        return Rect(center=center, half_size=half_size), points
+
+    def __call__(
+        self, go_further: Mapping[Rect, bool], /
+    ) -> tuple[Mapping[Rect, Sequence[complex]], Sequence[Rect]]:
+        final_keys = []
+        if not go_further:
+            return dict([self._rect(center=self.center, half_size=self.half_size)]), []
+        else:
+            result: dict[Rect, Sequence[complex]] = {}
+            for rect, branching in go_further.items():
+                if not branching:
+                    continue
+                if (
+                    rect.half_size.real < self.half_size_min.real
+                    and rect.half_size.imag < self.half_size_min.imag
+                ):
+                    final_keys.append(rect)
+                    continue
+                result.update(
+                    dict(
+                        [
+                            self._rect(
+                                center=rect.center
+                                + rect.half_size.real / 2 * i
+                                + 1j * rect.half_size.imag / 2 * j,
+                                half_size=rect.half_size / 2,
+                            )
+                            for i in [-1, 1]
+                            for j in [-1, 1]
+                        ]
+                    )
+                )
+            return result, final_keys
+
+    def keys_to_values(self, keys: Sequence[Rect], /) -> Sequence[complex]:
+        return [rect.center for rect in keys]
