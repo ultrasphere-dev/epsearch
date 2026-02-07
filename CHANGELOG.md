@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.1.0 (2026-02-07)
+
+### Features
+
+- Add `rectsboundary` ([`0ff6a35`](https://github.com/ultrasphere-dev/epsearch/commit/0ff6a35543d6e4f818304962836421462b0eebba))
+- Add rectsboundary ([`0ff6a35`](https://github.com/ultrasphere-dev/epsearch/commit/0ff6a35543d6e4f818304962836421462b0eebba))
+- Add rectboundary ([`0ff6a35`](https://github.com/ultrasphere-dev/epsearch/commit/0ff6a35543d6e4f818304962836421462b0eebba))
+
+### Bug fixes
+
+- Decompose cycles which are too close ([`0ff6a35`](https://github.com/ultrasphere-dev/epsearch/commit/0ff6a35543d6e4f818304962836421462b0eebba))
+- Decompose cycles which are too close ([`0ff6a35`](https://github.com/ultrasphere-dev/epsearch/commit/0ff6a35543d6e4f818304962836421462b0eebba))
+- Decompose cycles which are too close ([`0ff6a35`](https://github.com/ultrasphere-dev/epsearch/commit/0ff6a35543d6e4f818304962836421462b0eebba))
+- Fix drop duplicated cycles ([`0ff6a35`](https://github.com/ultrasphere-dev/epsearch/commit/0ff6a35543d6e4f818304962836421462b0eebba))
+
 ## v1.0.1 (2025-11-29)
 
 ### Bug fixes
