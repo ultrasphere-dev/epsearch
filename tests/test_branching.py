@@ -17,8 +17,8 @@ from epsearch import (
 @pytest.mark.parametrize(
     "boundary",
     [
-        CirclesBoundary(center=0, radius=2, radius_min=0.1, n_points=128),
-        RectsBoundary(center=0j, half_size=2 + 2j, half_size_min=0.1 + 0.1j, n_points_per_side=32),
+        CirclesBoundary(center=0, radius=2, radius_min=0.2, n_points=128),
+        RectsBoundary(center=0j, half_size=2 + 2j, half_size_min=0.2 + 0.2j, n_points_per_side=32),
     ],
 )
 def test_msd(
@@ -54,9 +54,9 @@ def test_msd(
 @pytest.mark.parametrize(
     "boundary",
     [
-        CirclesBoundary(center=3, radius=2, radius_min=0.1, n_points=128),
+        CirclesBoundary(center=5, radius=2, radius_min=0.2, n_points=128),
         RectsBoundary(
-            center=3 + 0j, half_size=2 + 2j, half_size_min=0.1 + 0.1j, n_points_per_side=32
+            center=5 + 0j, half_size=2 + 2j, half_size_min=0.2 + 0.2j, n_points_per_side=32
         ),
     ],
 )

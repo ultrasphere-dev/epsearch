@@ -56,7 +56,7 @@ jobs:
       - uses: astral-sh/setup-uv@eac588ad8def6316056a12d4907a9d4d84ff7a3b # v7
       - run: uv sync --no-python-downloads
         shell: bash
-      - run: uv run pytest
+      - run: uv run pytest -n auto
         shell: bash
       - uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
         with:
