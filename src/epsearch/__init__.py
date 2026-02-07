@@ -4,6 +4,8 @@ from ._branching import (
     Circle,
     CirclesBoundary,
     FindExceptionalPointsRecursivelyResult,
+    Rect,
+    RectsBoundary,
     find_branching_points_recursively,
 )
 from ._cycle import Cycles, get_cycles
@@ -15,6 +17,8 @@ __all__ = [
     "CirclesBoundary",
     "Cycles",
     "FindExceptionalPointsRecursivelyResult",
+    "Rect",
+    "RectsBoundary",
     "find_branching_points_recursively",
     "find_branching_points_recursively_hybrid",
     "get_cycles",
