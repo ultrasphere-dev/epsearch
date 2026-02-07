@@ -10,7 +10,7 @@ from numpy.typing import NDArray
 from ss_hankel import SSHKwargs, ss_h_circle
 from tqdm_joblib import tqdm_joblib
 
-from epsearch._branching import CirclesBoundary, count_duplicate
+from epsearch._branching import BoundaryGenerator, CirclesBoundary, RectsBoundary, count_duplicate
 from epsearch._diff_zeros import (
     find_branching_points_recursively_hybrid,
     find_branching_points_using_zeros_ssh,
@@ -27,11 +27,19 @@ from epsearch._diff_zeros import (
     ],
 )
 @pytest.mark.parametrize("method", ["ssh", "scipy"])
+@pytest.mark.parametrize(
+    "boundary",
+    [
+        CirclesBoundary(center=0, radius=4, radius_min=0.2, n_points=64),
+        RectsBoundary(center=0j, half_size=4 + 4j, half_size_min=0.2 + 0.2j, n_points_per_side=32),
+    ],
+)
 def test_msd(
     hybrid: bool,
     method: Literal["ssh", "scipy"],
     depth_first: bool,
     depth_first_and_break: bool,
+    boundary: BoundaryGenerator[Any, complex],
 ) -> None:
     A0 = np.asarray([[0, 0, 1, 0], [0, 0, 0, 1], [-1, 1, 0, 0], [1, -2, 0, 0]])
     A1 = np.asarray([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, -1]])
@@ -43,7 +51,7 @@ def test_msd(
     if hybrid:
         res = find_branching_points_recursively_hybrid(
             f,
-            CirclesBoundary(center=0, radius=4, radius_min=0.001, n_points=128),
+            boundary,
             ssh_kwargs=SSHKwargs(circle_n_points=128),
             method=method,
             depth_first=depth_first,
@@ -55,7 +63,8 @@ def test_msd(
         path = Path(__file__).parent / ".cache"
         path.mkdir(exist_ok=True)
         plt.savefig(
-            path / f"test_diff_msd_{hybrid}_{method}_{depth_first}_{depth_first_and_break}.jpg"
+            path / f"test_diff_msd_{hybrid}_{method}_{depth_first}_{depth_first_and_break}"
+            f"_{boundary.__class__.__name__}.jpg"
         )
     else:
         if method == "scipy":

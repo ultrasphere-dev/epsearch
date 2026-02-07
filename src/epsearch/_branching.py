@@ -1,5 +1,5 @@
 from collections.abc import Callable, Mapping, Sequence
-from typing import Any, Generic, Protocol, TypeVar
+from typing import Any, Generic, Literal, Protocol, TypeVar
 
 import attrs
 import matplotlib.pyplot as plt
@@ -21,7 +21,9 @@ def count_duplicate(a: NDArray[Any], /, *, eps: float = 1e-3) -> NDArray[Any]:
     return (a.min(axis=-1) < eps).sum(axis=-1)
 
 
-def contour_integral(values: NDArray[TNumber], /) -> NDArray[TNumber]:
+def contour_integral(
+    values: NDArray[TNumber], /, type: Literal["circle", "square"] = "circle"
+) -> NDArray[TNumber]:
     """
     Calculate contour integral.
 
@@ -29,6 +31,11 @@ def contour_integral(values: NDArray[TNumber], /) -> NDArray[TNumber]:
     ----------
     values: NDArray[TNumber]
         Values of shape (..., num_points).
+    type : Literal["circle", "square"], optional
+        The type of contour, by default "circle".
+        If "square", assume that first quarter of points are
+        one side of the square, second quarter are the side which
+        is connected to the previous side, and so on.
 
     Returns
     -------
@@ -36,6 +43,14 @@ def contour_integral(values: NDArray[TNumber], /) -> NDArray[TNumber]:
         The contour integral of shape (...).
 
     """
+    if type == "square":
+        l_side = values.shape[-1] // 4
+        return (
+            np.mean(values[..., :l_side], axis=-1)
+            + 1j * np.mean(values[..., l_side : 2 * l_side], axis=-1)
+            - np.mean(values[..., 2 * l_side : 3 * l_side], axis=-1)
+            - 1j * np.mean(values[..., 3 * l_side :], axis=-1)
+        )
     j = np.arange(values.shape[-1]) / values.shape[-1]
     weights = np.exp(2j * np.pi * j)
     cauchy = np.mean(values * weights, axis=-1)
@@ -47,6 +62,7 @@ def is_analytic(
     *,
     rtol: float | None = None,
     integral: NDArray[TNumber] | None = None,
+    type: Literal["circle", "square"] = "circle",
 ) -> bool:
     """
     Check if Cauchy's integral formula is fulfilled.
@@ -59,6 +75,8 @@ def is_analytic(
         The relative tolerance, by default 1e-3.
     integral : NDArray[TNumber] | None, optional
         The contour integral of shape (...).
+    type : Literal["circle", "square"], optional
+        The type of contour, by default "circle".
 
     Returns
     -------
@@ -68,7 +86,7 @@ def is_analytic(
 
     """
     rtol = 1e-3 if rtol is None else rtol
-    integral = contour_integral(values) if integral is None else integral
+    integral = contour_integral(values, type=type) if integral is None else integral
     return bool(np.all(np.abs(integral) < rtol * np.max(np.abs(values), axis=-1)))
 
 
@@ -128,6 +146,7 @@ class FindExceptionalPointsRecursivelyResult(Generic[TKey, TNumber]):
     """The keys of the final candidates."""
     branching_points: Sequence[TNumber]
     """The branching points found."""
+    f_boundary: BoundaryGenerator[TKey, TNumber]
 
     def plot(
         self,
@@ -144,6 +163,7 @@ class FindExceptionalPointsRecursivelyResult(Generic[TKey, TNumber]):
             text_contour_integral=text_contour_integral,
             text_additional=text_additional,
             set_limits=set_limits,
+            type="circle" if isinstance(self.f_boundary, CirclesBoundary) else "square",
         )
 
 
@@ -156,6 +176,7 @@ def plot(
     text_contour_integral: bool = True,
     text_additional: Callable[[Cycles[TNumber]], str] | None = None,
     set_limits: bool = False,
+    type: Literal["circle", "square"] = "circle",
 ) -> None:
     """Plot the boundaries and the eigenvalues."""
     sns.set_theme()
@@ -221,17 +242,16 @@ def plot(
             )
             for j in range(cycle.shape[0]):
                 text = f"{prefix}C{cycle.shape[0]}-{j}"
-                if cycle.shape[0] == 1:
-                    continue
                 if text_contour_integral and j == 0:
                     contour_integral_abs = np.abs(
                         contour_integral(
                             np.sum(cycle, axis=0) ** len(cycle)
-                            - np.prod(cycle * len(cycle), axis=0)
+                            - np.prod(cycle * len(cycle), axis=0),
+                            type=type,
                         )
                     )
                     text += f"\n∫: {contour_integral_abs:.3g}"
-                ax[2].text(
+                ax[3 if cycle.shape[0] == 1 else 2].text(
                     cycle[j, 0].real,
                     cycle[j, 0].imag,
                     text,
@@ -341,9 +361,15 @@ def find_branching_points_recursively(
         has_inside = f_go_further(cycle)
         final = has_inside and f_final(cycle) if f_final is not None else False
 
+        print(f"Generation {generation}, key {k}: {has_inside}")
         # analytic check if eigvals_analytic is True and Circle boundary
-        if isinstance(f_boundary, CirclesBoundary) and eigvals_analytic:
-            has_inside = has_inside or not is_analytic(cycle.eigvals, rtol=rtol_analytic)
+        if isinstance(f_boundary, (CirclesBoundary, RectsBoundary)) and eigvals_analytic:
+            has_inside = has_inside or not is_analytic(
+                cycle.eigvals,
+                rtol=rtol_analytic,
+                type="circle" if isinstance(f_boundary, CirclesBoundary) else "square",
+            )
+        print(f"Generation {generation}, key {k}: {has_inside}")
 
         # plot
         if f_plot is not None:
@@ -351,6 +377,7 @@ def find_branching_points_recursively(
                 boundaries=boundary,
                 cycles=cycle,
                 generations=None,
+                type="circle" if isinstance(f_boundary, CirclesBoundary) else "square",
             )
             f_plot(generation, len(cycles))
 
@@ -381,6 +408,7 @@ def find_branching_points_recursively(
         generations=generations,
         keys=list(dict.fromkeys(final_keys)),  # remove duplicates
         branching_points=list(f_boundary.keys_to_values(final_keys)),
+        f_boundary=f_boundary,
     )
     if f_plot is not None:
         result.plot()
@@ -494,3 +522,96 @@ class CirclesBoundary(BoundaryGenerator[Circle, complex]):
             if (np.abs(centers[i] - centers[:i]) > radii[i] + radii[:i]).all():
                 result.append(centers[i])
         return result
+
+
+@attrs.frozen(kw_only=True)
+class Rect:
+    half_size: complex
+    center: complex
+
+    @property
+    def radius(self) -> float:
+        return abs(self.half_size)
+
+
+@attrs.frozen(kw_only=True)
+class RectsBoundary(BoundaryGenerator[Rect, complex]):
+    """
+    Divide-and-conquer search using rectangles.
+
+    Parameters
+    ----------
+    center : complex
+        The center of the rectangle.
+    half_size : complex
+        The half size of the rectangle (width/2 + 1j * height/2).
+    half_size_min : complex
+        The half size threshold to stop the recursion.
+    n_points_per_side : int
+        The number of points per side on the rectangle.
+    extra_ratio : float, optional
+        The extra ratio to enlarge the rectangle
+        to avoid the corners to be missed, by default 0.1.
+        Must be positive or zero.
+
+    """
+
+    center: complex
+    half_size: complex
+    half_size_min: complex
+    n_points_per_side: int
+    extra_ratio: float = 0.1
+
+    def _rect(self, *, center: complex, half_size: complex) -> tuple[Rect, Sequence[complex]]:
+        half_size = half_size * (1 + self.extra_ratio)
+        arranged = 2 * np.arange(self.n_points_per_side) / self.n_points_per_side - 1
+        points = center + np.concat(
+            [
+                # right top
+                half_size.real + 1j * half_size.imag * arranged,
+                # right bottom
+                1j * half_size.imag - half_size.real * arranged,
+                # left bottom
+                -half_size.real - 1j * half_size.imag * arranged,
+                # left top
+                -1j * half_size.imag + half_size.real * arranged,
+            ],
+            axis=0,
+        )
+        return Rect(center=center, half_size=half_size), points
+
+    def __call__(
+        self, go_further: Mapping[Rect, bool], /
+    ) -> tuple[Mapping[Rect, Sequence[complex]], Sequence[Rect]]:
+        final_keys = []
+        if not go_further:
+            return dict([self._rect(center=self.center, half_size=self.half_size)]), []
+        else:
+            result: dict[Rect, Sequence[complex]] = {}
+            for rect, branching in go_further.items():
+                if not branching:
+                    continue
+                if (
+                    rect.half_size.real < self.half_size_min.real
+                    and rect.half_size.imag < self.half_size_min.imag
+                ):
+                    final_keys.append(rect)
+                    continue
+                result.update(
+                    dict(
+                        [
+                            self._rect(
+                                center=rect.center
+                                + rect.half_size.real / 2 * i
+                                + 1j * rect.half_size.imag / 2 * j,
+                                half_size=rect.half_size / 2,
+                            )
+                            for i in [-1, 1]
+                            for j in [-1, 1]
+                        ]
+                    )
+                )
+            return result, final_keys
+
+    def keys_to_values(self, keys: Sequence[Rect], /) -> Sequence[complex]:
+        return [rect.center for rect in keys]
