@@ -30,10 +30,8 @@ from epsearch._diff_zeros import (
 @pytest.mark.parametrize(
     "boundary",
     [
-        CirclesBoundary(center=0, radius=4, radius_min=0.05, n_points=64),
-        RectsBoundary(
-            center=0j, half_size=4 + 4j, half_size_min=0.05 + 0.05j, n_points_per_side=32
-        ),
+        CirclesBoundary(center=0, radius=4, radius_min=0.1, n_points=64),
+        RectsBoundary(center=0j, half_size=4 + 4j, half_size_min=0.1 + 0.1j, n_points_per_side=32),
     ],
 )
 def test_msd(
