@@ -73,17 +73,15 @@ def run_apidoc(_: Any) -> None:
     docs_path = Path(__file__).parent
     module_path = docs_path.parent / "src" / "epsearch"
 
-    apidoc.main(
-        [
-            "--force",
-            "--module-first",
-            "-o",
-            docs_path.as_posix(),
-            module_path.as_posix(),
-        ]
-    )
+    apidoc.main([
+        "--force",
+        "--module-first",
+        "-o",
+        docs_path.as_posix(),
+        module_path.as_posix(),
+    ])
 
 
 def setup(app: Sphinx) -> None:
-    """Setup sphinx."""
+    """Set up Sphinx."""
     app.connect("builder-inited", run_apidoc)

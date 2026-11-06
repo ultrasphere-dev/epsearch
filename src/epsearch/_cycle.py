@@ -88,8 +88,7 @@ def argmatch_from_closest(
         result[idx[0]] = idx[1]
         dist.mask[idx[0], :] = np.inf
         dist.mask[:, idx[1]] = np.inf
-    result = np.ma.masked_array(result, mask=result == -1)
-    return result
+    return np.ma.masked_array(result, mask=result == -1)
 
 
 def argmatch_from_closest_masked(
@@ -192,8 +191,8 @@ def get_cycles(
     # which start is the closest to the end
     eigvals_c = eigvals_c_incomp[:, ~eigvals_c_incomp.mask.any(axis=0)]
     arg = argmatch_from_closest(eigvals_c[-1, :], eigvals_c[0, :])
-    G = nx.DiGraph(list(enumerate(arg[~arg.mask])))
-    cycles = list(nx.simple_cycles(G))
+    g = nx.DiGraph(list(enumerate(arg[~arg.mask])))
+    cycles = list(nx.simple_cycles(g))
 
     # decompose cycles which are too close
     for cycle in cycles:
@@ -206,17 +205,17 @@ def get_cycles(
             )
             > decompose_threshold_rate
         ):
-            G.remove_edges_from([
+            g.remove_edges_from([
                 (cycle[i], cycle[(i + 1) % len(cycle)]) for i in range(len(cycle))
             ])
-            G.add_edges_from([(cycle[i], cycle[i]) for i in range(len(cycle))])
-    cycles = list(nx.simple_cycles(G))
+            g.add_edges_from([(cycle[i], cycle[i]) for i in range(len(cycle))])
+    cycles = list(nx.simple_cycles(g))
 
     # order by length
     cycles = sorted(cycles, key=len, reverse=True)
     return Cycles(
         cycles=[eigvals_c[:, cycle].swapaxes(0, 1) for cycle in cycles],
-        graph=G,
+        graph=g,
         eigvals=eigvals_c.T,
         incomplete_eigvals=eigvals_c_incomp.T,
     )

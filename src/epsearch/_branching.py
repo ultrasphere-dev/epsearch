@@ -12,11 +12,19 @@ from numpy.typing import NDArray
 from epsearch._cycle import Cycles, TNumber, get_cycles
 
 TKey = TypeVar("TKey")
-TNumber_co_ = TypeVar("TNumber_co_", bound=np.number, covariant=True)
+TNumber_co = TypeVar("TNumber_co", bound=np.number, covariant=True)
 
 
 def count_duplicate(a: NDArray[Any], /, *, eps: float = 1e-3) -> NDArray[Any]:
-    """Count the number of duplicates."""
+    """
+    Count the number of duplicates.
+
+    Returns
+    -------
+    NDArray[Any]
+        The number of duplicates for each element.
+
+    """
     a = np.abs(a[..., :, None] - a[..., None, :]) + np.eye(a.shape[-1]) * 1e10
     return (a.min(axis=-1) < eps).sum(axis=-1)
 
@@ -53,8 +61,7 @@ def contour_integral(
         )
     j = np.arange(values.shape[-1]) / values.shape[-1]
     weights = np.exp(2j * np.pi * j)
-    cauchy = np.mean(values * weights, axis=-1)
-    return cauchy
+    return np.mean(values * weights, axis=-1)
 
 
 def is_analytic(
@@ -90,12 +97,12 @@ def is_analytic(
     return bool(np.all(np.abs(integral) < rtol * np.max(np.abs(values), axis=-1)))
 
 
-class BoundaryGenerator(Protocol[TKey, TNumber_co_]):
+class BoundaryGenerator(Protocol[TKey, TNumber_co]):
     """A protocol for boundary generators."""
 
     def __call__(
         self, go_further: Mapping[TKey, bool], /
-    ) -> tuple[Mapping[TKey, Sequence[TNumber_co_]], Sequence[TKey]]:
+    ) -> tuple[Mapping[TKey, Sequence[TNumber_co]], Sequence[TKey]]:
         """
         Divide-and-conquer search.
 
@@ -106,13 +113,13 @@ class BoundaryGenerator(Protocol[TKey, TNumber_co_]):
 
         Returns
         -------
-        tuple[Mapping[TKey, Sequence[TNumber_co_]], Sequence[TKey]]
+        tuple[Mapping[TKey, Sequence[TNumber_co]], Sequence[TKey]]
             The new boundaries and the final keys.
 
         """
         ...
 
-    def keys_to_values(self, keys: Sequence[TKey], /) -> Sequence[TNumber_co_]:
+    def keys_to_values(self, keys: Sequence[TKey], /) -> Sequence[TNumber_co]:
         """
         Get the final candidates.
 
@@ -123,7 +130,7 @@ class BoundaryGenerator(Protocol[TKey, TNumber_co_]):
 
         Returns
         -------
-        Sequence[TNumber_co_]
+        Sequence[TNumber_co]
             The final candidates.
 
         """
@@ -150,6 +157,7 @@ class FindExceptionalPointsRecursivelyResult(Generic[TKey, TNumber]):
 
     def plot(
         self,
+        *,
         text_contour_integral: bool = True,
         text_additional: Callable[[Cycles[TNumber]], str] | None = None,
         set_limits: bool = True,
@@ -251,6 +259,8 @@ def plot(
                         )
                     )
                     text += f"\n∫: {contour_integral_abs:.3g}"
+                if text_additional is not None:
+                    text += f"\n{text_additional(cycle_)}"
                 ax[3 if cycle.shape[0] == 1 else 2].text(
                     cycle[j, 0].real,
                     cycle[j, 0].imag,
@@ -361,7 +371,6 @@ def find_branching_points_recursively(
         has_inside = f_go_further(cycle)
         final = has_inside and f_final(cycle) if f_final is not None else False
 
-        print(f"Generation {generation}, key {k}: {has_inside}")
         # analytic check if eigvals_analytic is True and Circle boundary
         if isinstance(f_boundary, (CirclesBoundary, RectsBoundary)) and eigvals_analytic:
             has_inside = has_inside or not is_analytic(
@@ -369,8 +378,6 @@ def find_branching_points_recursively(
                 rtol=rtol_analytic,
                 type="circle" if isinstance(f_boundary, CirclesBoundary) else "square",
             )
-        print(f"Generation {generation}, key {k}: {has_inside}")
-
         # plot
         if f_plot is not None:
             plot(
@@ -513,11 +520,11 @@ class CirclesBoundary(BoundaryGenerator[Circle, complex]):
         """
         centers = np.asarray([circle.center for circle in keys])
         radii = np.asarray([circle.radius for circle in keys])
-        result = []
-        for i in range(len(centers)):
-            if (np.abs(centers[i] - centers[:i]) > radii[i] + radii[:i]).all():
-                result.append(centers[i])
-        return result
+        return [
+            centers[i]
+            for i in range(len(centers))
+            if (np.abs(centers[i] - centers[:i]) > radii[i] + radii[:i]).all()
+        ]
 
 
 @attrs.frozen(kw_only=True)
@@ -559,7 +566,7 @@ class RectsBoundary(BoundaryGenerator[Rect, complex]):
     extra_ratio: float = 0.1
 
     def _rect(self, *, center: complex, half_size: complex) -> tuple[Rect, Sequence[complex]]:
-        half_size = half_size * (1 + self.extra_ratio)
+        half_size *= 1 + self.extra_ratio
         arranged = 2 * np.arange(self.n_points_per_side) / self.n_points_per_side - 1
         points = center + np.concat(
             [

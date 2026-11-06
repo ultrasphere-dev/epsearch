@@ -53,6 +53,23 @@ docs = [
 
 [tool.ruff]
 extend = ".venv/ruff.toml"
+lint.extend-per-file-ignores = { "docs/conf.py" = [ "A001" ], "src/epsearch/_branching.py" = [
+  "A002",
+  "C901",
+  "DOC201",
+  "DOC501",
+  "FBT001",
+  "FBT002",
+  "PGH003",
+  "PLR6301",
+  "UP046",
+  "UP047"
+], "src/epsearch/_cycle.py" = [ "DOC501", "UP046", "UP047" ], "src/epsearch/_diff_zeros.py" = [
+  "C901",
+  "FBT001",
+  "FBT002",
+  "PLR2004"
+], "tests/**/*" = [ "DOC201", "N806", "PGH003", "PLC2701", "PT006", "T201" ] }
 
 [tool.pyproject-fmt]
 max_supported_python = "3.14"
