@@ -206,9 +206,9 @@ def get_cycles(
             )
             > decompose_threshold_rate
         ):
-            G.remove_edges_from(
-                [(cycle[i], cycle[(i + 1) % len(cycle)]) for i in range(len(cycle))]
-            )
+            G.remove_edges_from([
+                (cycle[i], cycle[(i + 1) % len(cycle)]) for i in range(len(cycle))
+            ])
             G.add_edges_from([(cycle[i], cycle[i]) for i in range(len(cycle))])
     cycles = list(nx.simple_cycles(G))
 

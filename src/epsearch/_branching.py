@@ -477,28 +477,24 @@ class CirclesBoundary(BoundaryGenerator[Circle, complex]):
         final_keys = []
         if not go_further:
             return dict([self._circle(center=self.center, radius=self.radius)]), []
-        else:
-            result: dict[Circle, Sequence[complex]] = {}
-            for circle, branching in go_further.items():
-                if not branching:
-                    continue
-                if circle.radius < self.radius_min:
-                    final_keys.append(circle)
-                    continue
-                result.update(
-                    dict(
-                        [
-                            self._circle(
-                                center=circle.center
-                                + circle.radius / 2 / np.sqrt(2) * (i + j * 1j),
-                                radius=circle.radius / 2,
-                            )
-                            for i in [-1, 1]
-                            for j in [-1, 1]
-                        ]
+        result: dict[Circle, Sequence[complex]] = {}
+        for circle, branching in go_further.items():
+            if not branching:
+                continue
+            if circle.radius < self.radius_min:
+                final_keys.append(circle)
+                continue
+            result.update(
+                dict([
+                    self._circle(
+                        center=circle.center + circle.radius / 2 / np.sqrt(2) * (i + j * 1j),
+                        radius=circle.radius / 2,
                     )
-                )
-            return result, final_keys
+                    for i in [-1, 1]
+                    for j in [-1, 1]
+                ])
+            )
+        return result, final_keys
 
     def keys_to_values(self, keys: Sequence[Circle], /) -> Sequence[complex]:
         """
@@ -586,32 +582,29 @@ class RectsBoundary(BoundaryGenerator[Rect, complex]):
         final_keys = []
         if not go_further:
             return dict([self._rect(center=self.center, half_size=self.half_size)]), []
-        else:
-            result: dict[Rect, Sequence[complex]] = {}
-            for rect, branching in go_further.items():
-                if not branching:
-                    continue
-                if (
-                    rect.half_size.real < self.half_size_min.real
-                    and rect.half_size.imag < self.half_size_min.imag
-                ):
-                    final_keys.append(rect)
-                    continue
-                result.update(
-                    dict(
-                        [
-                            self._rect(
-                                center=rect.center
-                                + rect.half_size.real / 2 * i
-                                + 1j * rect.half_size.imag / 2 * j,
-                                half_size=rect.half_size / 2,
-                            )
-                            for i in [-1, 1]
-                            for j in [-1, 1]
-                        ]
+        result: dict[Rect, Sequence[complex]] = {}
+        for rect, branching in go_further.items():
+            if not branching:
+                continue
+            if (
+                rect.half_size.real < self.half_size_min.real
+                and rect.half_size.imag < self.half_size_min.imag
+            ):
+                final_keys.append(rect)
+                continue
+            result.update(
+                dict([
+                    self._rect(
+                        center=rect.center
+                        + rect.half_size.real / 2 * i
+                        + 1j * rect.half_size.imag / 2 * j,
+                        half_size=rect.half_size / 2,
                     )
-                )
-            return result, final_keys
+                    for i in [-1, 1]
+                    for j in [-1, 1]
+                ])
+            )
+        return result, final_keys
 
     def keys_to_values(self, keys: Sequence[Rect], /) -> Sequence[complex]:
         return [rect.center for rect in keys]
