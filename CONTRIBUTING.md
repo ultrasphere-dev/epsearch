@@ -86,7 +86,7 @@ Ready to contribute? Here's how to set yourself up for local development.
    $ git push origin name-of-your-bugfix-or-feature
    ```
 
-   Note: the commit message should follow [the conventional commits](https://www.conventionalcommits.org). We run [`commitlint` on CI](https://github.com/marketplace/actions/commit-linter) to validate it, and if you've installed pre-commit hooks at the previous step, the message will be checked at commit time.
+   Note: commit messages should follow [the Conventional Commits](https://www.conventionalcommits.org) specification.
 
 8. Submit a pull request through the GitHub website or using the GitHub CLI (if you have it installed):
 
@@ -112,6 +112,6 @@ $ pytest tests
 
 ## Making a new release
 
-The deployment should be automated and can be triggered from the Semantic Release workflow in GitHub. The next version will be based on [the commit logs](https://python-semantic-release.readthedocs.io/en/latest/commit-log-parsing.html#commit-log-parsing). This is done by [python-semantic-release](https://python-semantic-release.readthedocs.io/en/latest/index.html) via a GitHub action.
+Releases are automated by the shared CI workflow when changes reach `main`. Versioning is based on [the commit logs](https://python-semantic-release.readthedocs.io/en/latest/commit-log-parsing.html#commit-log-parsing) using [python-semantic-release](https://python-semantic-release.readthedocs.io/en/latest/index.html).
 
 [gh-issues]: https://github.com/ultrasphere-dev/epsearch/issues
