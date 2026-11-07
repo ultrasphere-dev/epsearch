@@ -44,4 +44,6 @@ Locate exceptional points of an analytic matrix
 
 Install this via pip (or your favourite package manager):
 
-`pip install epsearch`
+```shell
+pip install epsearch
+```
