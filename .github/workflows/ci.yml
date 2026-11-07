@@ -13,8 +13,6 @@ concurrency:
 jobs:
   ci:
     uses: 34j/.github/.github/workflows/python-package-ci.yml@main
-    with:
-      tkinter: true
     permissions:
       attestations: write
       contents: write
