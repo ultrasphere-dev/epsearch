@@ -99,8 +99,7 @@ def test_random():
         def finner(x: NDArray[Any]) -> NDArray[Any]:
             x_ = (x.squeeze()[:, None] ** np.arange(n_order)[None, :])[:, None, :, None, None, None]
             p_ = (p[:, None] ** np.arange(n_order)[None, :])[None, :, None, :, None, None]
-            A = (coefs[None, None, ...] * p_ * x_).sum(axis=2).sum(axis=2)
-            return A
+            return (coefs[None, None, ...] * p_ * x_).sum(axis=2).sum(axis=2)
 
         eig = ss_h_circle(
             finner,
