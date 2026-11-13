@@ -39,7 +39,7 @@ urls.repository = "https://github.com/ultrasphere-dev/epsearch"
 [dependency-groups]
 dev = [
   "coverage",
-  "joblib>=1.5.2",
+  "joblib>=1.6.0",
   "packaging-34j[test]",
   "pytest>=9,<10",
   "pytest-cov>=7,<8",
