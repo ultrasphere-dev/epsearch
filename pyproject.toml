@@ -27,7 +27,7 @@ dependencies = [
   "attrs>=25.4",
   "colormap-complex>=0.2",
   "matplotlib-multicolored-line>=0.3",
-  "networkx>=3.4.2",
+  "networkx>=3.7",
   "seaborn>=0.13.2",
   "ss-hankel>=1",
 ]
